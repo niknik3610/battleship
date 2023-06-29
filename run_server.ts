@@ -1,11 +1,12 @@
+export const FILE_PATH = "battleship_ts";
+
 import * as http from "http" ;
 import {promises as fs} from 'fs';
 import * as response_handler from "./response_handler";
 
 const OUT_PORT: number = 8000;
 const HOST_NAME = '127.0.0.1';
-const FILE_PATH = "battleship_ts/";
-const HEADER_PATH = FILE_PATH + "header.html";
+const HEADER_PATH = FILE_PATH + "/index.html";
 
 export async function read_file(path: string) {
     try {
@@ -24,7 +25,7 @@ async function main() {
         let path: string;
 
         if (req_url !== '/') {
-            path = FILE_PATH + req_url + '.html';
+            path = FILE_PATH + req_url;
         }
         else {
             path = HEADER_PATH
