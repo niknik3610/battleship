@@ -1,3 +1,5 @@
+import * as bs from "./battle_ship_logic";
+
 document.addEventListener('readystatechange', () => {    
   if (document.readyState == 'complete') main();
 });
@@ -11,59 +13,25 @@ function main() {
     board_canvas_context.fillRect(0, 0,board_canvas.width, board_canvas.height);
 
     const BOARD_OFFSET = {
-        x: board_canvas.width / MAX_BOARD_SIZE.x,
-        y: board_canvas.height / MAX_BOARD_SIZE.y
+        x: board_canvas.width / bs.MAX_BOARD_SIZE.x,
+        y: board_canvas.height / bs.MAX_BOARD_SIZE.y
     }
-    let board = new GameBoard();
+
+    let board = new bs.GameBoard();
     board.add_alive_square(0,0);
+    board.add_alive_square(1,5);
+    board.add_alive_square(1,8);
 
     render_board(board, board_canvas_context, BOARD_OFFSET);
 }
 
-function render_board(board: GameBoard, canvas_context: CanvasRenderingContext2D, offsets: {x: number, y: number}) {
-    for (let x = 0; x < MAX_BOARD_SIZE.x; x++) {
-        for (let y = 0; y < MAX_BOARD_SIZE.y; y++) {
-            if (board.game_board[x][y] === SquareState.Alive) {
+function render_board(board: bs.GameBoard, canvas_context: CanvasRenderingContext2D, offsets: {x: number, y: number}) {
+    for (let x = 0; x < bs.MAX_BOARD_SIZE.x; x++) {
+        for (let y = 0; y < bs.MAX_BOARD_SIZE.y; y++) {
+            if (board.game_board[x][y] === bs.SquareState.Alive) {
                 canvas_context.fillStyle = 'blue';
                 canvas_context.fillRect(x * offsets.x, y * offsets.y, offsets.x, offsets.y)
             }
         }
     }
 }
-
-const MAX_BOARD_SIZE = {
-    x: 10,
-    y: 10
-};
-
-enum SquareState {
-    Empty,
-    Alive,
-    Dead
-}
-
-class GameBoard {
-    game_board: [[SquareState]] = [[SquareState.Empty]];
-
-    constructor() {
-        for (let x = 0; x < MAX_BOARD_SIZE.x; x++) {
-            for (let y = 0; y < MAX_BOARD_SIZE.y; y++) { 
-                this.game_board[x][y] = SquareState.Empty;
-            }
-        }
-    }
-
-    add_alive_square(x: number, y: number) {
-        this.game_board[x][y] = SquareState.Alive;
-    }
-
-    kill_square(x: number, y: number): boolean {
-        if (this.game_board[x][y] === SquareState.Empty) {
-            return false;
-        }
-
-        this.game_board[x][y] = SquareState.Dead;
-        return true;
-    }
-}
-
