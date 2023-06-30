@@ -14,10 +14,13 @@ export class GameBoard {
 
     constructor() {
         this.game_board = [...Array(MAX_BOARD_SIZE.x)].map(_ => Array(MAX_BOARD_SIZE.y).fill(SquareState.Empty));
-
     }
 
     add_alive_square(x: number, y: number) {
+        if (x >= MAX_BOARD_SIZE.x || y >= MAX_BOARD_SIZE.y) {
+            return;
+        }
+
         this.game_board[x][y] = SquareState.Alive;
     }
 
