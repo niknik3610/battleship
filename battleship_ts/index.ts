@@ -1,4 +1,5 @@
 import * as bs from "../battle_ship_logic";
+import { fetchUrl, sendJSON } from "./api_requests";
 
 const BOARD_REQUEST = "/request_board";
 const KILL_SQUARE = "/kill_square";
@@ -16,23 +17,17 @@ async function main() {
     board_canvas_context.fillStyle= 'black';
     board_canvas_context.fillRect(0, 0,board_canvas.width, board_canvas.height);
 
+    board_canvas.addEventListener('mousedown', (e) => {
+        let pos = get_cursor_pos(board_canvas, e);
+        kill_square(pos);
+    })
+
     const BOARD_OFFSET = {
         x: board_canvas.width / bs.MAX_BOARD_SIZE.x,
         y: board_canvas.height / bs.MAX_BOARD_SIZE.y
     }
 
-    alive_square(new bs.Vector2(0, 0));
-    alive_square(new bs.Vector2(2, 5));
-
-    kill_square(new bs.Vector2(4, 4));
-    kill_square(new bs.Vector2(5, 7));
-
-    window.setInterval(() => update_board(board_canvas_context, BOARD_OFFSET), 1000);
-}
-
-async function update_board(canvas_context: CanvasRenderingContext2D, offsets: {x: number, y: number}) {
-    let to_render = await request_game_board();
-    render_board(to_render, canvas_context, offsets);
+    window.setInterval(() => update_board(board_canvas_context, BOARD_OFFSET), 100);
 }
 
 async function alive_square(coords: bs.Vector2) {
@@ -43,24 +38,23 @@ async function kill_square(coords: bs.Vector2) {
     sendJSON(KILL_SQUARE, JSON.stringify(coords));
 }
 
+function get_cursor_pos(canvas: HTMLCanvasElement, event: MouseEvent): bs.Vector2 {
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor((event.clientX - rect.left) / canvas.width * bs.MAX_BOARD_SIZE.x);
+    const y = Math.floor((event.clientY - rect.top) /  canvas.height* bs.MAX_BOARD_SIZE.y);
+    console.log("x: " + x + " y: " + y);
+    return new bs.Vector2(x, y);
+}
+
+async function update_board(canvas_context: CanvasRenderingContext2D, offsets: {x: number, y: number}) {
+    let to_render = await request_game_board();
+    render_board(to_render, canvas_context, offsets);
+}
+
 function request_game_board() {
-    let result = fetchUrl(BOARD_REQUEST)
+    console.log("requesting board");
+    let result = fetchUrl(BOARD_REQUEST);
     return result;
-}
-
-async function sendJSON(r_type: string, to_send: string) {
-    await fetch(r_type, {
-        headers: {"Content-Type": "application/json; charset=utf-8"},
-        method: 'PUT',
-        body: to_send
-    });
-}
-
-async function fetchUrl(url: string) {
-    let response = await fetch(url);
-    let data = await response.json();
-    console.log(data);
-    return data;
 }
 
 function render_board(board: bs.GameBoard, canvas_context: CanvasRenderingContext2D, offsets: {x: number, y: number}) {

@@ -47,10 +47,10 @@ export function update_board(req: IncomingMessage, game: BattleShipGame, update_
         switch (update_type) {
             case UpdateType.Kill:
                 game.next_turn(parsed_coords);
-                break;
+            break;
             case UpdateType.Alive:
                 game.add_alive_square(parsed_coords);
-                break;
-        }
+            break;
+        } 
     });
 }
