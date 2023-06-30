@@ -3,14 +3,17 @@ export const FILE_PATH = "battleship_ts";
 import * as http from "http" ;
 import {promises as fs} from 'fs';
 import * as response_handler from "./response_handler";
-import { BattleShipGame, init_game, serve_board } from "./battle_ship_api";
+import { BattleShipGame, init_game, serve_board, update_board, UpdateType } from "./battle_ship_api";
+import { Vector2 } from "./battle_ship_logic";
 
 const OUT_PORT: number = 8000;
 const HOST_NAME = '127.0.0.1';
 const HEADER_PATH = FILE_PATH + "/index.html";
 
 enum RequestType {
-    UpdatedBoard,
+    Board,
+    KillSquare,
+    AliveSquare,
     File,
 }
 
@@ -24,28 +27,22 @@ export async function read_file(path: string) {
     }
 }
 
-function temp_func(x:number, y: number, game: BattleShipGame) {
-}
-
 async function main() {
     let game = init_game();
-    let x = 0;
-    let y = 0;
-    setInterval(() => {
-        game.board.add_alive_square(x, y);
-        x++;
-        y++;
-    }, 1000)
-
     const server = http.createServer(async (req, res) => {
         console.log("Received Request");
         let req_url = req.url!;
-        console.log(req_url);
         let request = match_request(req_url);
 
         switch (request) {
-            case RequestType.UpdatedBoard:
+            case RequestType.Board:
                 serve_board(res, game.board);
+                break;
+            case RequestType.KillSquare:
+                update_board(req, game, UpdateType.Kill);
+                break;
+            case RequestType.AliveSquare:
+                update_board(req, game, UpdateType.Alive);
                 break;
             case RequestType.File:
                 fufill_file_request(req_url, res);
@@ -64,7 +61,11 @@ async function main() {
 function match_request(request_url: string): RequestType {
     switch (request_url) {
         case "/request_board":
-            return RequestType.UpdatedBoard;
+            return RequestType.Board;
+        case "/alive_square":
+            return RequestType.AliveSquare;
+        case "/kill_square":
+            return RequestType.KillSquare;
         default:
             return RequestType.File;
     }

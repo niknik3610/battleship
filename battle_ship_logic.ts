@@ -9,6 +9,15 @@ export enum SquareState {
     Dead
 }
 
+export class Vector2 {
+    x: number;
+    y: number;
+    constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
 export class GameBoard {
     game_board: SquareState[][];
 
@@ -16,20 +25,16 @@ export class GameBoard {
         this.game_board = [...Array(MAX_BOARD_SIZE.x)].map(_ => Array(MAX_BOARD_SIZE.y).fill(SquareState.Empty));
     }
 
-    add_alive_square(x: number, y: number) {
-        if (x >= MAX_BOARD_SIZE.x || y >= MAX_BOARD_SIZE.y) {
+    add_alive_square(coords: Vector2) {
+        if (coords.x >= MAX_BOARD_SIZE.x || coords.y >= MAX_BOARD_SIZE.y) {
             return;
         }
 
-        this.game_board[x][y] = SquareState.Alive;
+        this.game_board[coords.x][coords.y] = SquareState.Alive;
     }
 
-    kill_square(x: number, y: number): boolean {
-        if (this.game_board[x][y] === SquareState.Empty) {
-            return false;
-        }
-
-        this.game_board[x][y] = SquareState.Dead;
+    kill_square(coords: Vector2): boolean {
+        this.game_board[coords.x][coords.y] = SquareState.Dead;
         return true;
     }
 }

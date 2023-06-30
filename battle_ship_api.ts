@@ -1,5 +1,10 @@
-import { ServerResponse } from "http";
-import { GameBoard } from "./battle_ship_logic";
+import { IncomingMessage, ServerResponse } from "http";
+import { GameBoard, Vector2 } from "./battle_ship_logic";
+
+export enum UpdateType {
+    Kill,
+    Alive
+}
 
 export class BattleShipGame {
     board: GameBoard;
@@ -9,10 +14,14 @@ export class BattleShipGame {
         this.board = new GameBoard();
         this.current_turn = 0;
     }
-    next_turn(x: number, y: number): number {
+    next_turn(coords: Vector2): number {
         this.current_turn++;
-        this.board.kill_square(x, y);
+        this.board.kill_square(coords);
+        console.log("turn: " + this.current_turn);
         return this.current_turn;
+    }
+    add_alive_square(coords: Vector2) {
+        this.board.add_alive_square(coords);
     }
 }
 
@@ -26,4 +35,22 @@ export function serve_board(res: ServerResponse, board: GameBoard) {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'json');
     res.end(header);
+}
+
+export function update_board(req: IncomingMessage, game: BattleShipGame, update_type: UpdateType) {
+    let data = "";  
+     req.on('data', (chunk) => {
+        data += chunk;
+    });
+    req.on('end', () => {
+        let parsed_coords = JSON.parse(data);
+        switch (update_type) {
+            case UpdateType.Kill:
+                game.next_turn(parsed_coords);
+                break;
+            case UpdateType.Alive:
+                game.add_alive_square(parsed_coords);
+                break;
+        }
+    });
 }
