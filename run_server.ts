@@ -31,7 +31,6 @@ export async function read_file(path: string) {
 async function main() {
     let game = init_game();
     const server = http.createServer(async (req, res) => {
-        console.log("Received Request");
         let req_url = req.url!;
         let request = match_request(req_url);
         switch (request) {
@@ -39,14 +38,17 @@ async function main() {
                 serve_board(res, game.board, game.player_turn);
                 break;
             case RequestType.KillSquare:
+                console.log("Received Request");
                 update_board(req, game, UpdateType.Kill);
                 response_handler.serve_200_ok(res);
                 break;
             case RequestType.AliveSquare:
+                console.log("Received Request");
                 update_board(req, game, UpdateType.Alive);
                 response_handler.serve_200_ok(res);
                 break;
             case RequestType.File:
+                console.log("Received Request");
                 fufill_file_request(req_url, res);
                 break;
             case RequestType.SwitchTurn:

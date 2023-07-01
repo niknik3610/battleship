@@ -7,14 +7,14 @@ export enum UpdateType {
 }
 
 export class BattleShipGame {
-    board: GameBoard;
-    
+    board: GameBoard; 
     current_turn: number;
     player_turn: number;
 
     constructor() {
         this.board = new GameBoard();
         this.current_turn = 0;
+        this.player_turn = 0;
     }
     kill_square(coords: Vector2): number { 
         this.board.kill_square(coords);

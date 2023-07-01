@@ -87,6 +87,7 @@ function get_cursor_pos(canvas: HTMLCanvasElement, event: MouseEvent): bs.Vector
 
 async function update_board(canvas_context: CanvasRenderingContext2D, offsets: {x: number, y: number}) {
     let to_render = await request_game_board();
+    console.log(to_render);
     render_board(to_render, canvas_context, offsets);
 }
 
