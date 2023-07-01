@@ -4,7 +4,6 @@ import * as http from "http" ;
 import {promises as fs} from 'fs';
 import * as response_handler from "./response_handler";
 import { BattleShipGame, init_game, serve_board, update_board, UpdateType } from "./battle_ship_api";
-import { Vector2 } from "./battle_ship_logic";
 
 const OUT_PORT: number = 8000;
 const HOST_NAME = '127.0.0.1';
@@ -16,6 +15,7 @@ enum RequestType {
     AliveSquare,
     File,
     SwitchTurn,
+    Reset,
 }
 
 export async function read_file(path: string) {
@@ -56,6 +56,10 @@ async function main() {
                 game.player_turn = game.current_turn % 2;
                 response_handler.serve_200_ok(res);
                 break;
+            case RequestType.Reset:
+                game = init_game();
+                response_handler.serve_200_ok(res);
+                break;
             default:
                 console.log("Unknown RequestType: " + req_url);
                 break;
@@ -77,6 +81,8 @@ function match_request(request_url: string): RequestType {
             return RequestType.KillSquare;
         case "/switch_turn":
             return RequestType.SwitchTurn;
+        case "/reset":
+            return RequestType.Reset;
         default:
             return RequestType.File;
     }

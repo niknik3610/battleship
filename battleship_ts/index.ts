@@ -1,15 +1,16 @@
-import { on } from "events";
 import * as bs from "../battle_ship_logic";
 import { fetchUrl, sendJSON } from "./api_requests";
 
 const BOARD_REQUEST = "/request_board";
 const KILL_SQUARE = "/kill_square";
 const ALIVE_SQUARE = "/alive_square";
-const SWITCH_TURNS = "/switch_turn"
+const SWITCH_TURNS = "/switch_turn";
+const RESET_GAME = "/reset";
 
 const BOARD_CANVAS = <HTMLCanvasElement> document.getElementById("game_board");
 const MODE_BUTTON = <HTMLButtonElement> document.getElementById("mode_button");
 const MODE_DISPLAY = <HTMLParagraphElement> document.getElementById("curr_mode");
+const RESET_BUTTON = <HTMLButtonElement> document.getElementById("reset");
 
 document.addEventListener('readystatechange', () => {    
   if (document.readyState == 'complete') main();
@@ -57,6 +58,12 @@ async function main() {
         MODE_DISPLAY.textContent = "Watch your opponent";
     })
 
+    RESET_BUTTON.addEventListener('click', (_) => {    
+        MODE_DISPLAY.textContent = "Select you battleships";
+        p_mode = PlayerMode.ChoosingShip;
+        sendJSON(RESET_GAME, "");
+    })
+
     const BOARD_OFFSET = {
         x: BOARD_CANVAS.width / bs.MAX_BOARD_SIZE.x,
         y: BOARD_CANVAS.height / bs.MAX_BOARD_SIZE.y
@@ -100,7 +107,7 @@ function render_board(board: bs.SquareState[][], canvas_context: CanvasRendering
     for (let x = 0; x < bs.MAX_BOARD_SIZE.x; x++) {
         for (let y = 0; y < bs.MAX_BOARD_SIZE.y; y++) {
             if (board[x][y] === bs.SquareState.Alive) {
-                canvas_context.fillStyle = 'blue';
+                canvas_context.fillStyle = 'black';
                 canvas_context.fillRect(x * offsets.x, y * offsets.y, offsets.x, offsets.y)
             }
             else if (board[x][y] === bs.SquareState.HitSuccess) {
@@ -112,7 +119,7 @@ function render_board(board: bs.SquareState[][], canvas_context: CanvasRendering
                 canvas_context.fillRect(x * offsets.x, y * offsets.y, offsets.x, offsets.y)
             }
             else {
-                canvas_context.fillStyle = 'black';
+                canvas_context.fillStyle = 'blue';
                 canvas_context.fillRect(x * offsets.x, y * offsets.y, offsets.x, offsets.y)
             }
         }
