@@ -3,6 +3,12 @@ import * as http from "http" ;
 
 const ERROR_404 = FILE_PATH +  "/404.html";
 
+export async function serve_200_ok(res: http.ServerResponse) {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'html');
+    res.end();
+}
+
 export const serve_404_error = async (res: http.ServerResponse) => {
     let e_header: string;
     e_header = await read_file(ERROR_404); 

@@ -38,11 +38,7 @@ export function serve_board(res: ServerResponse, board: GameBoard) {
 }
 
 export function update_board(req: IncomingMessage, game: BattleShipGame, update_type: UpdateType) {
-    let data = "";  
-     req.on('data', (chunk) => {
-        data += chunk;
-    });
-    req.on('end', () => {
+    req.on('data', (data) => {
         let parsed_coords = JSON.parse(data);
         switch (update_type) {
             case UpdateType.Kill:
@@ -52,5 +48,6 @@ export function update_board(req: IncomingMessage, game: BattleShipGame, update_
                 game.add_alive_square(parsed_coords);
             break;
         } 
+        console.log("done with action");
     });
 }

@@ -27,6 +27,7 @@ async function main() {
         y: board_canvas.height / bs.MAX_BOARD_SIZE.y
     }
 
+    window.setInterval(() => kill_square(new bs.Vector2(1,2)), 200);
     window.setInterval(() => update_board(board_canvas_context, BOARD_OFFSET), 100);
 }
 
@@ -52,7 +53,6 @@ async function update_board(canvas_context: CanvasRenderingContext2D, offsets: {
 }
 
 function request_game_board() {
-    console.log("requesting board");
     let result = fetchUrl(BOARD_REQUEST);
     return result;
 }

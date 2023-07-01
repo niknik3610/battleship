@@ -32,6 +32,7 @@ async function main() {
     const server = http.createServer(async (req, res) => {
         console.log("Received Request");
         let req_url = req.url!;
+        console.log(req_url);
         let request = match_request(req_url);
 
         switch (request) {
@@ -40,9 +41,11 @@ async function main() {
                 break;
             case RequestType.KillSquare:
                 update_board(req, game, UpdateType.Kill);
+                response_handler.serve_200_ok(res);
                 break;
             case RequestType.AliveSquare:
                 update_board(req, game, UpdateType.Alive);
+                response_handler.serve_200_ok(res);
                 break;
             case RequestType.File:
                 fufill_file_request(req_url, res);
