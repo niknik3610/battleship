@@ -1,33 +1,67 @@
+import { on } from "events";
 import * as bs from "../battle_ship_logic";
 import { fetchUrl, sendJSON } from "./api_requests";
 
 const BOARD_REQUEST = "/request_board";
 const KILL_SQUARE = "/kill_square";
 const ALIVE_SQUARE = "/alive_square";
+const SWITCH_TURNS = "/switch_turn"
+
+const BOARD_CANVAS = <HTMLCanvasElement> document.getElementById("game_board");
+const MODE_BUTTON = <HTMLButtonElement> document.getElementById("mode_button");
+const MODE_DISPLAY = <HTMLParagraphElement> document.getElementById("curr_mode");
 
 document.addEventListener('readystatechange', () => {    
   if (document.readyState == 'complete') main();
 });
 
+enum PlayerMode {
+    Kill =  0,
+    Watching = 1,
+    ChoosingShip = 2
+}
+
 async function main() {
     console.log("initilized");
-    const board_canvas = <HTMLCanvasElement> document.getElementById("game_board");
-    const board_canvas_context = board_canvas.getContext('2d')!;
+    let p_mode = PlayerMode.ChoosingShip;
+
+    const board_canvas_context = BOARD_CANVAS.getContext('2d')!; 
 
     board_canvas_context.fillStyle= 'black';
-    board_canvas_context.fillRect(0, 0,board_canvas.width, board_canvas.height);
+    board_canvas_context.fillRect(0, 0,BOARD_CANVAS.width, BOARD_CANVAS.height);
 
-    board_canvas.addEventListener('mousedown', (e) => {
-        let pos = get_cursor_pos(board_canvas, e);
-        kill_square(pos);
+    MODE_DISPLAY.textContent = "Select you battleships";
+
+    BOARD_CANVAS.addEventListener('mousedown', (e) => {
+        let pos = get_cursor_pos(BOARD_CANVAS, e);
+        switch (p_mode) {
+            case PlayerMode.Watching:
+            break;
+            case PlayerMode.ChoosingShip:
+                alive_square(pos);
+            break;
+            case PlayerMode.Kill:
+                kill_square(pos);
+            break;
+        }
+    })
+
+    MODE_BUTTON.addEventListener('click', (_) => {
+        switch_turn();
+        p_mode = p_mode + 1;
+        if (p_mode > 1) {
+            p_mode = 0;
+            MODE_DISPLAY.textContent = "Kill your opponents battleships";
+            return;
+        }
+        MODE_DISPLAY.textContent = "Watch your opponent";
     })
 
     const BOARD_OFFSET = {
-        x: board_canvas.width / bs.MAX_BOARD_SIZE.x,
-        y: board_canvas.height / bs.MAX_BOARD_SIZE.y
+        x: BOARD_CANVAS.width / bs.MAX_BOARD_SIZE.x,
+        y: BOARD_CANVAS.height / bs.MAX_BOARD_SIZE.y
     }
 
-    window.setInterval(() => kill_square(new bs.Vector2(1,2)), 200);
     window.setInterval(() => update_board(board_canvas_context, BOARD_OFFSET), 100);
 }
 
@@ -37,6 +71,10 @@ async function alive_square(coords: bs.Vector2) {
 
 async function kill_square(coords: bs.Vector2) {
     sendJSON(KILL_SQUARE, JSON.stringify(coords));
+}
+
+async function switch_turn() {
+    sendJSON(SWITCH_TURNS, "");
 }
 
 function get_cursor_pos(canvas: HTMLCanvasElement, event: MouseEvent): bs.Vector2 {
@@ -57,18 +95,25 @@ function request_game_board() {
     return result;
 }
 
-function render_board(board: bs.GameBoard, canvas_context: CanvasRenderingContext2D, offsets: {x: number, y: number}) {
+function render_board(board: bs.SquareState[][], canvas_context: CanvasRenderingContext2D, offsets: {x: number, y: number}) {
     for (let x = 0; x < bs.MAX_BOARD_SIZE.x; x++) {
         for (let y = 0; y < bs.MAX_BOARD_SIZE.y; y++) {
-            if (board.game_board[x][y] === bs.SquareState.Alive) {
+            if (board[x][y] === bs.SquareState.Alive) {
                 canvas_context.fillStyle = 'blue';
                 canvas_context.fillRect(x * offsets.x, y * offsets.y, offsets.x, offsets.y)
             }
-            else if (board.game_board[x][y] === bs.SquareState.Dead) {
+            else if (board[x][y] === bs.SquareState.HitSuccess) {
+                canvas_context.fillStyle = 'green';
+                canvas_context.fillRect(x * offsets.x, y * offsets.y, offsets.x, offsets.y)
+            }
+            else if (board[x][y] === bs.SquareState.HitMiss) {
                 canvas_context.fillStyle = 'red';
+                canvas_context.fillRect(x * offsets.x, y * offsets.y, offsets.x, offsets.y)
+            }
+            else {
+                canvas_context.fillStyle = 'black';
                 canvas_context.fillRect(x * offsets.x, y * offsets.y, offsets.x, offsets.y)
             }
         }
     }
-
 }

@@ -15,6 +15,7 @@ enum RequestType {
     KillSquare,
     AliveSquare,
     File,
+    SwitchTurn,
 }
 
 export async function read_file(path: string) {
@@ -32,12 +33,10 @@ async function main() {
     const server = http.createServer(async (req, res) => {
         console.log("Received Request");
         let req_url = req.url!;
-        console.log(req_url);
         let request = match_request(req_url);
-
         switch (request) {
             case RequestType.Board:
-                serve_board(res, game.board);
+                serve_board(res, game.board, game.player_turn);
                 break;
             case RequestType.KillSquare:
                 update_board(req, game, UpdateType.Kill);
@@ -49,6 +48,11 @@ async function main() {
                 break;
             case RequestType.File:
                 fufill_file_request(req_url, res);
+                break;
+            case RequestType.SwitchTurn:
+                game.current_turn += 1;
+                game.player_turn = game.current_turn % 2;
+                response_handler.serve_200_ok(res);
                 break;
             default:
                 console.log("Unknown RequestType: " + req_url);
@@ -69,6 +73,8 @@ function match_request(request_url: string): RequestType {
             return RequestType.AliveSquare;
         case "/kill_square":
             return RequestType.KillSquare;
+        case "/switch_turn":
+            return RequestType.SwitchTurn;
         default:
             return RequestType.File;
     }
@@ -87,7 +93,7 @@ function fufill_file_request(req_url: string, res: http.ServerResponse) {
     response_handler.serve_file(path, res)
     .catch((e) => {
         response_handler.serve_404_error(res);
-        console.log(e);
+        console.error(e);
     });
 }
 

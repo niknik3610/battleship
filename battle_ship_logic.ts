@@ -6,7 +6,8 @@ export const MAX_BOARD_SIZE = {
 export enum SquareState {
     Empty,
     Alive,
-    Dead
+    HitSuccess,
+    HitMiss,
 }
 
 export class Vector2 {
@@ -19,23 +20,27 @@ export class Vector2 {
 }
 
 export class GameBoard {
-    game_board: SquareState[][];
+    ship_board: SquareState[][];
+    attack_board: SquareState[][];
 
     constructor() {
-        this.game_board = [...Array(MAX_BOARD_SIZE.x)].map(_ => Array(MAX_BOARD_SIZE.y).fill(SquareState.Empty));
+        this.ship_board = [...Array(MAX_BOARD_SIZE.x)].map(_ => Array(MAX_BOARD_SIZE.y).fill(SquareState.Empty));
+        this.attack_board= [...Array(MAX_BOARD_SIZE.x)].map(_ => Array(MAX_BOARD_SIZE.y).fill(SquareState.Empty));
     }
 
     add_alive_square(coords: Vector2) {
         if (coords.x >= MAX_BOARD_SIZE.x || coords.y >= MAX_BOARD_SIZE.y) {
             return;
         }
-
-        this.game_board[coords.x][coords.y] = SquareState.Alive;
+        this.ship_board[coords.x][coords.y] = SquareState.Alive;
     }
-
     kill_square(coords: Vector2): boolean {
-        this.game_board[coords.x][coords.y] = SquareState.Dead;
+        if (this.ship_board[coords.x][coords.y] == SquareState.Alive) {
+            this.attack_board[coords.x][coords.y] = SquareState.HitSuccess;
+        }
+        else {
+            this.attack_board[coords.x][coords.y] = SquareState.HitMiss;
+        }
         return true;
     }
 }
-

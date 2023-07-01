@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { GameBoard, Vector2 } from "./battle_ship_logic";
+import { GameBoard, SquareState, Vector2 } from "./battle_ship_logic";
 
 export enum UpdateType {
     Kill,
@@ -8,14 +8,15 @@ export enum UpdateType {
 
 export class BattleShipGame {
     board: GameBoard;
+    
     current_turn: number;
+    player_turn: number;
 
     constructor() {
         this.board = new GameBoard();
         this.current_turn = 0;
     }
-    next_turn(coords: Vector2): number {
-        this.current_turn++;
+    kill_square(coords: Vector2): number { 
         this.board.kill_square(coords);
         console.log("turn: " + this.current_turn);
         return this.current_turn;
@@ -30,8 +31,16 @@ export function init_game(): BattleShipGame {
     return game;
 }
 
-export function serve_board(res: ServerResponse, board: GameBoard) {
-    let header = JSON.stringify(board);
+export function serve_board(res: ServerResponse, board: GameBoard, player_turn: number) { 
+    let curr_board: SquareState[][];
+    if (player_turn == 0) {
+        curr_board = board.ship_board;
+    }
+    else {
+        curr_board = board.attack_board;
+    }
+
+    let header = JSON.stringify(curr_board);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'json');
     res.end(header);
@@ -42,12 +51,11 @@ export function update_board(req: IncomingMessage, game: BattleShipGame, update_
         let parsed_coords = JSON.parse(data);
         switch (update_type) {
             case UpdateType.Kill:
-                game.next_turn(parsed_coords);
+                game.kill_square(parsed_coords);
             break;
             case UpdateType.Alive:
                 game.add_alive_square(parsed_coords);
             break;
         } 
-        console.log("done with action");
     });
 }
