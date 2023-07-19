@@ -9,6 +9,12 @@ export async function serve_200_ok(res: http.ServerResponse) {
     res.end();
 }
 
+export function serve_c_id(id: number, res: http.ServerResponse) {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(id.toString());
+}
+
 export const serve_404_error = async (res: http.ServerResponse) => {
     let e_header: string;
     e_header = await read_file(ERROR_404); 

@@ -1,3 +1,8 @@
+export enum API_REQUEST_TYPES {
+    API_UPDATE = "api_update",
+    API_REQUEST = "api_request"
+}
+
 export const MAX_BOARD_SIZE = {
     x: 10,
     y: 10
@@ -25,7 +30,7 @@ export class GameBoard {
 
     constructor() {
         this.ship_board = [...Array(MAX_BOARD_SIZE.x)].map(_ => Array(MAX_BOARD_SIZE.y).fill(SquareState.Empty));
-        this.attack_board= [...Array(MAX_BOARD_SIZE.x)].map(_ => Array(MAX_BOARD_SIZE.y).fill(SquareState.Empty));
+        this.attack_board = [...Array(MAX_BOARD_SIZE.x)].map(_ => Array(MAX_BOARD_SIZE.y).fill(SquareState.Empty));
     }
 
     add_alive_square(coords: Vector2) {
@@ -34,6 +39,7 @@ export class GameBoard {
         }
         this.ship_board[coords.x][coords.y] = SquareState.Alive;
     }
+
     kill_square(coords: Vector2): boolean {
         if (this.ship_board[coords.x][coords.y] == SquareState.Alive) {
             this.attack_board[coords.x][coords.y] = SquareState.HitSuccess;

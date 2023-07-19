@@ -1,16 +1,46 @@
-export async function sendJSON(r_type: string, to_send: string) {
-    fetch(r_type, {
+import { CLIENT_ID } from ".";
+import { GameApiRequest } from "../battle_ship_api";
+import { API_REQUEST_TYPES } from "../battle_ship_logic";
+
+export async function sendJSON(r_type: string, body: string) {
+    let request = await createApiUpdate(r_type, body);
+    console.log(request);
+
+    fetch(API_REQUEST_TYPES.API_UPDATE, {
+        method: "POST",
+        body: request,
         headers: {
-            "Content-Type": "application/json; charset=utf-8",
-        },
-        method: 'POST',
-        body: to_send,
-    });   
+        "Content-type": "application/json; charset=UTF-8"
+        }
+    });
 }
 
-export async function fetchUrl(url: string) {
-    let response = await fetch(url);
-    let data = await response.json();
+export async function fetchUrl(r_type: string) {
+    let request = await createApiRequest(r_type);
+
+    let response = await fetch(API_REQUEST_TYPES.API_REQUEST, {
+        method: "GET",
+        body: request,
+        headers: {
+        "Content-type": "application/json; charset=UTF-8"
+        }
+    });
+
+    let data = response.json();
     return data;
 }
 
+async function createApiUpdate(r_type: string, body: string) {
+    let request = new GameApiRequest(CLIENT_ID, r_type);
+    request.add_body(body);
+    let request_string = JSON.stringify(request);
+
+    return request_string;
+}
+
+async function createApiRequest(r_type: string) {
+    let request = new GameApiRequest(CLIENT_ID, r_type);
+    let request_string = JSON.stringify(request);
+
+    return request_string;
+}
