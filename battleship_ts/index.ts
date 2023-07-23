@@ -1,6 +1,6 @@
 import { GameApiRequest } from "../battle_ship_api";
 import * as bs from "../battle_ship_logic";
-import { fetchUrl, sendJSON } from "./api_requests";
+import { getRequest, postRequest } from "./api_requests";
 import { update_board } from "./board_handler";
 
 const BOARD_REQUEST = "/request_board";
@@ -67,7 +67,7 @@ async function main() {
     RESET_BUTTON.addEventListener('click', (_) => {    
         MODE_DISPLAY.textContent = "Select you battleships";
         p_mode = PlayerMode.ChoosingShip;
-        sendJSON(RESET_GAME, "");
+        postRequest(RESET_GAME, "");
     })
 
     const BOARD_OFFSET = {
@@ -80,20 +80,20 @@ async function main() {
 
 function request_c_id(): number {
     let result: number = 0; 
-    fetchUrl(REQUEST_C_ID).then(r => result = r);
+    getRequest(REQUEST_C_ID).then(r => result = r);
     return result;
 }
 
 async function alive_square(coords: bs.Vector2) {
-    sendJSON(ALIVE_SQUARE, JSON.stringify(coords));
+    postRequest(ALIVE_SQUARE, JSON.stringify(coords));
 }
 
 async function kill_square(coords: bs.Vector2) {
-    sendJSON(KILL_SQUARE, JSON.stringify(coords));
+    postRequest(KILL_SQUARE, JSON.stringify(coords));
 }
 
 async function switch_turn() {
-    sendJSON(SWITCH_TURNS, "");
+    postRequest(SWITCH_TURNS, "");
 }
 
 function get_cursor_pos(canvas: HTMLCanvasElement, event: MouseEvent): bs.Vector2 {
@@ -106,6 +106,6 @@ function get_cursor_pos(canvas: HTMLCanvasElement, event: MouseEvent): bs.Vector
 
 
 export function request_game_board() {
-    let result = fetchUrl(BOARD_REQUEST);
+    let result = getRequest(BOARD_REQUEST);
     return result;
 }

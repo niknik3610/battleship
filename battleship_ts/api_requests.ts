@@ -2,7 +2,7 @@ import { CLIENT_ID } from ".";
 import { GameApiRequest } from "../battle_ship_api";
 import { API_REQUEST_TYPES } from "../battle_ship_logic";
 
-export async function sendJSON(r_type: string, body: string) {
+export async function postRequest(r_type: string, body: string) {
     let request = await createApiUpdate(r_type, body);
     console.log(request);
 
@@ -15,8 +15,9 @@ export async function sendJSON(r_type: string, body: string) {
     });
 }
 
-export async function fetchUrl(r_type: string) {
+export async function getRequest(r_type: string) {
     let request = await createApiRequest(r_type);
+    console.log(request);
 
     let response = await fetch(API_REQUEST_TYPES.API_REQUEST, {
         method: "GET",
@@ -42,5 +43,6 @@ async function createApiRequest(r_type: string) {
     let request = new GameApiRequest(CLIENT_ID, r_type);
     let request_string = JSON.stringify(request);
 
+    console.log(request_string);
     return request_string;
 }

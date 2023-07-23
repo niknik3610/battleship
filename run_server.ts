@@ -25,15 +25,20 @@ enum RequestType {
 main();
 
 async function handle_get_request(req: http.IncomingMessage, res: http.ServerResponse, game: BattleShipGame) {
+    console.log("Received Get Request");
+
     let raw_data = "";
     let r_body: GameApiRequest | undefined = undefined;
- 
+  
     let req_url = req.url; 
+    console.log(req_url);
+
     if (req_url === undefined) {
         throw "Undefined URL";
     }
 
     try {
+        raw_data = get_message_body(req);
         console.log("Raw Data: " + raw_data);
         r_body = JSON.parse(raw_data);
     }
@@ -66,24 +71,24 @@ async function handle_get_request(req: http.IncomingMessage, res: http.ServerRes
 }
 
 async function handle_post_request(req: http.IncomingMessage, res: http.ServerResponse, game: BattleShipGame) {
-    let raw_data = "";
+    console.log("Received Post Request");
+
     let r_body: GameApiRequest | undefined = undefined;
 
     let parsed_req = get_message_body(req);
     if (parsed_req === undefined) {
         console.error("Error Parsing Request");
     }
-    raw_data = parsed_req.body;
-
-    r_body = JSON.parse(raw_data);
+    
+    r_body = JSON.parse(parsed_req);
     let req_url = req.url; 
+    
     if (req_url === undefined) {
         throw "Undefined URL";
-    }
-
-    if (r_body === undefined) {
+    } else if (r_body === undefined) {
         throw "Malformed API Request";
     }
+
 
     let requesting_player = r_body.c_id; 
     let request = r_body.r_type;
@@ -107,20 +112,23 @@ async function handle_post_request(req: http.IncomingMessage, res: http.ServerRe
             default:
                 console.error("Unknown RequestType: " + req_url);
                 return;
-        }
-        response_handler.serve_200_ok(res);
+    }
+    response_handler.serve_200_ok(res);
 }
 
-function get_message_body(res: http.IncomingMessage): qs.ParsedUrlQuery | undefined {
+function get_message_body(res: http.IncomingMessage) {
     let body = '';
-    let post: qs.ParsedUrlQuery | undefined = undefined;
+    let result = '';
     res.on('data', function (data) {
-        body += data;
+        body += data.toString();
+        console.log(body);
     });
-    res.on('end', function () {
-        post = qs.parse(body);
-    });
-    return post;
+
+    res.on('end', function() {
+        result = body;
+    }); 
+
+    return result;
 }
 
 async function main() {
