@@ -1,4 +1,4 @@
-import { read_file, FILE_PATH  } from "./run_server";
+import { read_file, FILE_PATH, HEADER_PATH  } from "./run_server";
 import * as http from "http" ;
 
 const ERROR_404 = FILE_PATH +  "/404.html";
@@ -25,6 +25,9 @@ export const serve_404_error = async (res: http.ServerResponse) => {
 
 export const serve_file = async (file_path: string, res: http.ServerResponse) => {
     let header: string;
+    if (file_path === "/") {
+        file_path = HEADER_PATH; 
+    }
     try {
         header = await read_file(file_path);
         res.statusCode = 200;
@@ -32,6 +35,7 @@ export const serve_file = async (file_path: string, res: http.ServerResponse) =>
         res.end(header);
     }
     catch {
-        throw `File Not Found: ${file_path}`;
+        console.error(`File not found: {file_path}`)
+        serve_404_error(res);
     }
 }

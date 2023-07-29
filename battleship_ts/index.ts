@@ -106,6 +106,6 @@ function get_cursor_pos(canvas: HTMLCanvasElement, event: MouseEvent): bs.Vector
 
 
 export function request_game_board() {
-    let result = getRequest(BOARD_REQUEST);
+    let result = postRequest(BOARD_REQUEST, CLIENT_ID.toString());
     return result;
 }

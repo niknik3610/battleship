@@ -21,7 +21,6 @@ export async function getRequest(r_type: string) {
 
     let response = await fetch(API_REQUEST_TYPES.API_REQUEST, {
         method: "GET",
-        body: request,
         headers: {
         "Content-type": "application/json; charset=UTF-8"
         }

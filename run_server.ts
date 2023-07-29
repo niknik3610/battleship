@@ -9,7 +9,7 @@ import { json } from "stream/consumers";
 
 const OUT_PORT: number = 8000;
 const HOST_NAME = '127.0.0.1';
-const HEADER_PATH = FILE_PATH + "/index.html";
+export const HEADER_PATH = FILE_PATH + "/index.html";
 let connected_clients = 0;
 
 enum RequestType {
@@ -24,111 +24,76 @@ enum RequestType {
 
 main();
 
-async function handle_get_request(req: http.IncomingMessage, res: http.ServerResponse, game: BattleShipGame) {
+async function handle_get_request(url: string, res: http.ServerResponse) {
     console.log("Received Get Request");
 
-    let raw_data = "";
-    let r_body: GameApiRequest | undefined = undefined;
-  
-    let req_url = req.url; 
-    console.log(req_url);
-
-    if (req_url === undefined) {
+    if (url === undefined) {
         throw "Undefined URL";
     }
 
-    try {
-        raw_data = get_message_body(req);
-        console.log("Raw Data: " + raw_data);
-        r_body = JSON.parse(raw_data);
-    }
-    catch (e) {
-        console.log("Received Request Page Request");
-        fufill_file_request(req_url, res);            
-        return;
-    }
-
-    if (r_body === undefined) {
-        throw "Malformed API Request";
-    }
-
-    let request = r_body.r_type;
-    let request_type = match_request(request);
+    let request_type = match_request(url);
 
     switch (request_type) { 
         case RequestType.CID:
             response_handler.serve_c_id(connected_clients, res);
-        console.log("Assigned Client: " + connected_clients);
-        connected_clients++;
-        break;
-        case RequestType.Board:
-            let requesting_player = r_body?.c_id;
-        serve_board(res, requesting_player, game, game.player_attacking);
-        break;
+            console.log("Assigned Client: " + connected_clients);
+            connected_clients++;
+            break;
         default:
-            console.error("Unknown Request Type for Get Request");
+            response_handler.serve_file(url, res);
     }
 }
 
-async function handle_post_request(req: http.IncomingMessage, res: http.ServerResponse, game: BattleShipGame) {
+async function handle_post_request(req: string, res: http.ServerResponse, game: BattleShipGame) {
     console.log("Received Post Request");
 
     let r_body: GameApiRequest | undefined = undefined;
 
-    let parsed_req = get_message_body(req);
-    if (parsed_req === undefined) {
+    if (req === undefined) {
         console.error("Error Parsing Request");
+        return;
     }
     
-    r_body = JSON.parse(parsed_req);
-    let req_url = req.url; 
-    
-    if (req_url === undefined) {
-        throw "Undefined URL";
-    } else if (r_body === undefined) {
-        throw "Malformed API Request";
+    r_body = JSON.parse(req);
+    if (r_body === undefined) {
+        console.error("Undefined Request Body");
+        return;
     }
 
-
-    let requesting_player = r_body.c_id; 
     let request = r_body.r_type;
     let request_type = match_request(request);
+    let request_player = r_body.c_id; 
 
     console.log("Received Request");
     switch (request_type) {
-            case RequestType.KillSquare:
-                update_board(req, requesting_player, game, UpdateType.Kill);
-                break;
-            case RequestType.AliveSquare:
-                update_board(req, requesting_player, game, UpdateType.Alive);
-                break;
-            case RequestType.SwitchTurn:
-                game.current_turn += 1;
-                game.player_attacking = game.current_turn % 2;
-                break;
-            case RequestType.Reset:
-                game = init_game();
-                break;
-            default:
-                console.error("Unknown RequestType: " + req_url);
+        case RequestType.KillSquare:
+            if (r_body.body === undefined) {
+                console.error("Request Body is undefined");
                 return;
+            }
+            update_board(r_body.body, request_player, game, UpdateType.Kill);
+            break;
+        case RequestType.AliveSquare:
+            if (r_body.body === undefined) {
+                console.error("Request Body is undefined");
+                return;
+            }
+            update_board(r_body.body, request_player, game, UpdateType.Alive);
+            break;
+        case RequestType.SwitchTurn:
+            game.current_turn += 1;
+            game.player_attacking = game.current_turn % 2;
+        break;
+        case RequestType.Board: 
+            serve_board(res, request_player, game, game.player_attacking);
+            break;
+        case RequestType.Reset:
+            game = init_game();
+            break;
+        default:
+            return;
     }
     response_handler.serve_200_ok(res);
-}
-
-function get_message_body(res: http.IncomingMessage) {
-    let body = '';
-    let result = '';
-    res.on('data', function (data) {
-        body += data.toString();
-        console.log(body);
-    });
-
-    res.on('end', function() {
-        result = body;
-    }); 
-
-    return result;
 }
 
 async function main() {
@@ -144,16 +109,28 @@ async function main() {
             return;
         }
 
-        switch (req_method) {
-            case "GET":
-                handle_get_request(req, res, game).catch(e => console.log(e));
+        let string_req = "";
+        req.on('data', function(data) {
+            string_req += data;
+        });
+        
+        req.on('end', function() {
+            switch (req_method) {
+                case "GET":
+                    if (url === undefined) {
+                        console.error("URL is undefined");
+                        return;
+                    }
+                    handle_get_request(url, res).catch(e => console.log(e));
                 break;
-            case "POST":
-                handle_post_request(req, res, game).catch(e => console.log(e));
+                case "POST":
+                    handle_post_request(string_req, res, game).catch(e => console.log(e));
                 break;
-            default:
-                console.error("Unsupported Method Type");
-        }
+                default:
+                    console.error("Unsupported Method Type");
+            }
+
+        });
     });    
 
     server.listen(OUT_PORT, HOST_NAME, () => {

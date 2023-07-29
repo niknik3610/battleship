@@ -62,16 +62,14 @@ export function serve_board(res: ServerResponse, requesting_player: number, game
     res.end(header);
 }
 
-export function update_board(req: IncomingMessage, requesting_player: number, game: BattleShipGame, update_type: UpdateType) {
-    req.on('data', (data) => {
-        let parsed_coords = JSON.parse(data);
-        switch (update_type) {
-            case UpdateType.Kill:
-                game.kill_square(parsed_coords, requesting_player);
-            break;
-            case UpdateType.Alive:
-                game.add_alive_square(parsed_coords, requesting_player);
-            break;
-        } 
-    });
+export function update_board(req: string, requesting_player: number, game: BattleShipGame, update_type: UpdateType) {
+    let parsed_coords = JSON.parse(req);
+    switch (update_type) {
+        case UpdateType.Kill:
+            game.kill_square(parsed_coords, requesting_player);
+        break;
+        case UpdateType.Alive:
+            game.add_alive_square(parsed_coords, requesting_player);
+        break;
+    } 
 }
